@@ -40,7 +40,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: apppassword
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
-      - "8081:8080"
+      - "8080:8080"
     networks:
       - appnet
 
