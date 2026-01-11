@@ -2,7 +2,7 @@ package com.project.dass.Controller;
 
 import com.project.dass.Model.Recipe;
 import com.project.dass.Model.RecipeCategory;
-import com.project.dass.Service.RecipeService; // Χρησιμοποιούμε το Service
+import com.project.dass.Service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,14 +53,6 @@ public class ApiController {
     // POST create new recipe
     @PostMapping(value = "/recipes", produces = "application/json;charset=UTF-8")
     public ResponseEntity<Recipe> createRecipe(@RequestBody Recipe recipe) {
-        // ΣΗΜΑΝΤΙΚΟ: Σύνδεση γονέα-παιδιού πριν την αποθήκευση
-        if (recipe.getSteps() != null) {
-            recipe.getSteps().forEach(step -> step.setRecipe(recipe));
-        }
-        if (recipe.getIngredients() != null) {
-            recipe.getIngredients().forEach(ing -> ing.setRecipe(recipe));
-        }
-
         Recipe savedRecipe = recipeService.saveRecipe(recipe);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedRecipe);
     }
@@ -68,40 +60,13 @@ public class ApiController {
     // PUT update recipe
     @PutMapping(value = "/recipes/{id}", produces = "application/json;charset=UTF-8")
     public ResponseEntity<Recipe> updateRecipe(@PathVariable Long id, @RequestBody Recipe recipeDetails) {
-        Optional<Recipe> optionalRecipe = recipeService.getRecipeById(id);
+        // Καλούμε το Service να κάνει όλη τη δουλειά
+        Optional<Recipe> updatedRecipe = recipeService.updateRecipe(id, recipeDetails);
 
-        if (optionalRecipe.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Recipe recipe = optionalRecipe.get();
-        recipe.setTitle(recipeDetails.getTitle());
-        recipe.setDifficulty(recipeDetails.getDifficulty());
-        recipe.setCategory(recipeDetails.getCategory());
-        recipe.setPrepTimeMinutes(recipeDetails.getPrepTimeMinutes());
-        recipe.setTotalTimeMinutes(recipeDetails.getTotalTimeMinutes());
-        recipe.setImageUrls(recipeDetails.getImageUrls());
-
-        // Update ingredients
-        if (recipeDetails.getIngredients() != null) {
-            recipe.getIngredients().clear();
-            recipeDetails.getIngredients().forEach(ingredient -> {
-                ingredient.setRecipe(recipe); // Σωστή σύνδεση
-                recipe.getIngredients().add(ingredient);
-            });
-        }
-
-        // Update steps
-        if (recipeDetails.getSteps() != null) {
-            recipe.getSteps().clear();
-            recipeDetails.getSteps().forEach(step -> {
-                step.setRecipe(recipe); // Σωστή σύνδεση
-                recipe.getSteps().add(step);
-            });
-        }
-
-        Recipe updatedRecipe = recipeService.saveRecipe(recipe);
-        return ResponseEntity.ok(updatedRecipe);
+        // Αν γυρίσει αποτέλεσμα -> 200 OK, αλλιώς -> 404 Not Found
+        return updatedRecipe
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // DELETE recipe
