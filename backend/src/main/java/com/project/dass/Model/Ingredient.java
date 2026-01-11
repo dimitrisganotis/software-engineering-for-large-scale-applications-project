@@ -1,5 +1,6 @@
 package com.project.dass.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 @Data
@@ -16,5 +17,6 @@ public class Ingredient {
     // Χρησιµοποιούµε JsonIgnore για να µην έχουµε ατέρµονους βρόχους
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id")
+    @JsonIgnore
     private Recipe recipe;
 }
