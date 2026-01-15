@@ -1,4 +1,5 @@
 services:
+  # --- 1. Database Service ---
   mysql:
     image: mysql:8.4
     container_name: springboot-mysql
@@ -24,9 +25,10 @@ services:
     networks:
       - appnet
 
+  # --- 2. Backend Service (Spring Boot) ---
   app:
     build:
-      context: .
+      context: .             # <--- Εδώ μένει η τελεία (.) γιατί το Dockerfile είναι δίπλα στο yml
       dockerfile: Dockerfile
     container_name: springboot-app
     restart: unless-stopped
@@ -41,6 +43,22 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "8081:8080"
+    networks:
+      - appnet
+
+  # --- 3. Frontend Service (Node.js/React) ---
+  frontend:
+    build:
+      context: ../frontend    # <--- Η ΜΕΓΑΛΗ ΑΛΛΑΓΗ: Πάμε πίσω (..) και μετά στο frontend
+      dockerfile: Dockerfile
+    container_name: react-frontend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+    depends_on:
+      - app
     networks:
       - appnet
 
