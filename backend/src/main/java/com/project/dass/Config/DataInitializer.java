@@ -19,7 +19,7 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // Only initialize if database is empty
         if (recipeRepository.count() == 0) {
-            initializeDummyData();
+//            initializeDummyData();
         }
     }
 

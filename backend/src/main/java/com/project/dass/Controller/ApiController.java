@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000") // Επιτρέπει στο React να μιλάει με το Spring
+@CrossOrigin(origins = "*") // Επιτρέπει στο React να μιλάει με το Spring
 public class ApiController {
 
     @Autowired
