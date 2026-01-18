@@ -5,6 +5,7 @@
 ## Δομή Εφαρμογής
 
 ### Routes
+
 - `/` - Λίστα συνταγών
 - `/recipes/new` - Δημιουργία νέας συνταγής
 - `/recipes/:id` - Προβολή συνταγής
@@ -26,8 +27,8 @@ app/
 │       └── textarea.tsx
 ├── context/
 │   └── RecipesContext.tsx     # React Context για διαχείριση state
-├── data/
-│   └── mockRecipes.ts         # Mock data και API functions
+├── context/
+│   └── RecipesContext.tsx     # React Context για διαχείριση state
 ├── routes/
 │   ├── recipes.tsx            # Λίστα συνταγών (/)
 │   ├── recipes.new.tsx        # Φόρμα δημιουργίας/επεξεργασίας
@@ -41,42 +42,6 @@ app/
 └── routes.ts                  # Route configuration
 ```
 
-## Mock Data
-
-Τα mock δεδομένα βρίσκονται στο `app/data/mockRecipes.ts`.
-
-### Δομή Δεδομένων
-
-```typescript
-interface Recipe {
-  id: string;
-  name: string;
-  category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  totalTimeMinutes: number;
-  ingredients: string[];
-  steps: RecipeStep[];
-}
-
-interface RecipeStep {
-  id: string;
-  order: number;
-  title: string;
-  description: string;
-  durationMinutes: number;
-}
-```
-
-### API Functions (Mock)
-
-Οι παρακάτω functions χρησιμοποιούν προς το παρόν mock data, αλλά είναι δομημένες έτσι ώστε να μπορούν εύκολα να αντικατασταθούν με πραγματικά API calls:
-
-- `getAllRecipes()` → `GET /api/recipes`
-- `getRecipeById(id)` → `GET /api/recipes/{id}`
-- `createRecipe(recipe)` → `POST /api/recipes`
-- `updateRecipe(id, recipe)` → `PUT /api/recipes/{id}`
-- `deleteRecipe(id)` → `DELETE /api/recipes/{id}`
-
 ## State Management
 
 Χρησιμοποιείται React Context (`RecipesContext`) για τη διαχείριση του global state.
@@ -84,6 +49,7 @@ interface RecipeStep {
 ### RecipesContext
 
 Παρέχει:
+
 - `recipes`: Λίστα συνταγών
 - `loading`: Loading state
 - `getRecipe(id)`: Ανάκτηση συνταγής με βάση το ID
@@ -95,23 +61,27 @@ interface RecipeStep {
 ## Χαρακτηριστικά
 
 ### 1. Λίστα Συνταγών
+
 - Προβολή όλων των συνταγών σε card layout
 - Εμφάνιση: όνομα, κατηγορία, δυσκολία, χρόνος
 - Actions: Προβολή, Επεξεργασία, Διαγραφή
 
 ### 2. Προβολή Συνταγής
+
 - Εμφάνιση πλήρων στοιχείων συνταγής
 - Λίστα υλικών
 - Βήματα με σειρά και διάρκεια
 - Κουμπί "Έναρξη Μαγειρέματος"
 
 ### 3. Δημιουργία/Επεξεργασία Συνταγής
+
 - Φόρμα με όλα τα πεδία
 - Δυναμική προσθήκη/αφαίρεση βημάτων
 - Αυτόματη αρίθμηση βημάτων
 - Validation
 
 ### 4. Εκτέλεση Συνταγής
+
 - Step-by-step οδηγίες
 - Progress bar με βάση τον χρόνο (όχι τα βήματα)
 - Προεπισκόπηση επόμενου βήματος
@@ -134,11 +104,71 @@ npm run dev
 - TypeScript
 - Vite
 
-## Σημειώσεις
+## Προετοιμασία Παρουσίασης
 
-- Όλα τα σχόλια κώδικα είναι στα ελληνικά
-- Το UI είναι καθαρό, minimal και φιλικό
-- Δεν χρησιμοποιούνται global state libraries (Redux, Zustand)
-- Δεν υπάρχει authentication
-- Όλα τα δεδομένα είναι mock - εύκολα αντικαθίσταται με REST API
+### Παράδειγμα JSON Συνταγής
 
+**Τίτλος:** Λουκουμάδες
+**Κατηγορία:** DESSERT (Γλυκό)
+**Δυσκολία:** MEDIUM (Μέτρια)
+**Χρόνος:** 45 λεπτά
+
+**Υλικά:**
+
+1. Αλεύρι: 200 g
+2. Μέλι: 100 g
+
+**Βήματα:**
+
+1. **Τίτλος:** Αλεύρι και νερό
+   **Περιγραφή:** Ανακατεύουμε το αλεύρι με νερό μέχρι να γίνει χυλός.
+   **Διάρκεια:** 5 λεπτά
+   **Υλικά:** Αλεύρι
+
+2. **Τίτλος:** Τηγάνισμα
+   **Περιγραφή:** Ρίχνουμε κουταλιές στο καυτό λάδι.
+   **Διάρκεια:** 10 λεπτά
+
+3. **Τίτλος:** Σερβίρισμα
+   **Περιγραφή:** Περιχύνουμε με μέλι και κανέλα.
+   **Διάρκεια:** 2 λεπτά
+   **Υλικά:** Μέλι
+
+### JSON Payload (για Postman)
+
+```json
+{
+  "title": "Λουκουμάδες",
+  "category": "DESSERT",
+  "difficulty": "MEDIUM",
+  "prepTimeMinutes": 15,
+  "totalTimeMinutes": 45,
+  "ingredients": [
+    { "name": "Αλεύρι", "quantity": 200, "unit": "g" },
+    { "name": "Μέλι", "quantity": 100, "unit": "g" }
+  ],
+  "steps": [
+    {
+      "stepOrder": 1,
+      "title": "Αλεύρι και νερό",
+      "description": "Ανακατεύουμε το αλεύρι με νερό.",
+      "durationMinutes": 5,
+      "ingredients": [{ "name": "Αλεύρι", "quantity": 200, "unit": "g" }]
+    },
+    {
+      "stepOrder": 2,
+      "title": "Σερβίρισμα",
+      "description": "Περιχύνουμε με μέλι.",
+      "durationMinutes": 2,
+      "ingredients": [{ "name": "Μέλι", "quantity": 100, "unit": "g" }]
+    }
+  ]
+}
+```
+
+## Σημειώσεις Υλοποίησης
+
+- Το Backend είναι σε **Java Spring Boot**.
+- Η Βάση Δεδομένων είναι **MySQL**.
+- Το Frontend είναι **React/TypeScript**.
+- Οι φωτογραφίες αποθηκεύονται τοπικά στον φάκελο `backend/photos`.

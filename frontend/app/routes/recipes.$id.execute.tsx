@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router';
-import { useRecipes } from '~/context/RecipesContext';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
-import { Progress } from '~/components/ui/progress';
+import { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router";
+import { useRecipes } from "~/context/RecipesContext";
+import { api } from "~/lib/api";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Progress } from "~/components/ui/progress";
 
 export default function RecipeExecute() {
   const { id } = useParams();
@@ -11,7 +12,7 @@ export default function RecipeExecute() {
   const { getRecipe } = useRecipes();
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [progressValue, setProgressValue] = useState(0);
 
   if (!id) {
     return (
@@ -39,17 +40,24 @@ export default function RecipeExecute() {
   const currentStep = recipe.steps[currentStepIndex];
   const isCompleted = currentStepIndex >= recipe.steps.length;
 
-  // Υπολογισμός συνολικής προόδου με βάση το χρόνο
-  const totalTime = recipe.totalTimeMinutes;
-  const timeUpToCurrentStep = recipe.steps
-    .slice(0, currentStepIndex)
-    .reduce((sum, step) => sum + step.durationMinutes, 0);
-  const progressValue = isCompleted ? 100 : (timeUpToCurrentStep / totalTime) * 100;
-
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (currentStepIndex < recipe.steps.length) {
+      // Calculate progress from backend
+      // We are completing the current step (order = index + 1)
+      const completedStepOrder = recipe.steps[currentStepIndex].stepOrder;
+
+      try {
+        const progress = await api.getExecutionProgress(
+          Number(id),
+          completedStepOrder,
+        );
+        setProgressValue(progress);
+      } catch (e) {
+        console.error("Failed to update progress", e);
+        console.error("Failed to update progress", e);
+      }
+
       setCurrentStepIndex(currentStepIndex + 1);
-      setElapsedTime(timeUpToCurrentStep + (currentStep?.durationMinutes || 0));
     }
   };
 
@@ -63,11 +71,13 @@ export default function RecipeExecute() {
       <div className="container mx-auto py-8 px-4 max-w-3xl">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl text-center">Συγχαρητήρια!</CardTitle>
+            <CardTitle className="text-2xl text-center">
+              Συγχαρητήρια!
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <p className="text-lg">
-              Ολοκληρώσατε τη συνταγή <strong>{recipe.name}</strong>
+              Ολοκληρώσατε τη συνταγή <strong>{recipe.title}</strong>
             </p>
             <p className="text-neutral-500">
               Συνολικός χρόνος: {recipe.totalTimeMinutes} λεπτά
@@ -89,7 +99,7 @@ export default function RecipeExecute() {
     <div className="container mx-auto py-8 px-4 max-w-3xl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{recipe.name}</CardTitle>
+          <CardTitle className="text-2xl">{recipe.title}</CardTitle>
           <p className="text-sm text-neutral-500">
             Βήμα {currentStepIndex + 1} από {recipe.steps.length}
           </p>
@@ -102,9 +112,6 @@ export default function RecipeExecute() {
               <span className="font-medium">{Math.round(progressValue)}%</span>
             </div>
             <Progress value={progressValue} />
-            <p className="text-xs text-neutral-500 text-center">
-              {timeUpToCurrentStep} / {totalTime} λεπτά
-            </p>
           </div>
 
           {/* Τρέχον βήμα */}
@@ -117,9 +124,22 @@ export default function RecipeExecute() {
                     {currentStep.durationMinutes} λεπτά
                   </span>
                 </div>
-                <p className="text-neutral-700 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed mb-4">
                   {currentStep.description}
                 </p>
+                {currentStep.imageUrl && (
+                  <div className="rounded-lg overflow-hidden border border-neutral-100">
+                    <img
+                      src={
+                        currentStep.imageUrl.startsWith("http")
+                          ? currentStep.imageUrl
+                          : `http://localhost:8080/api/recipes/${id}/steps/${currentStep.id}/photo/${currentStep.imageUrl}`
+                      }
+                      alt={currentStep.title}
+                      className="w-full h-auto max-h-64 object-cover"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -127,7 +147,9 @@ export default function RecipeExecute() {
           {/* Επόμενα βήματα (προεπισκόπηση) */}
           {currentStepIndex < recipe.steps.length - 1 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-neutral-500">Επόμενο βήμα:</h4>
+              <h4 className="text-sm font-medium text-neutral-500">
+                Επόμενο βήμα:
+              </h4>
               <p className="text-sm text-neutral-600">
                 {recipe.steps[currentStepIndex + 1].title}
               </p>
@@ -138,8 +160,8 @@ export default function RecipeExecute() {
           <div className="flex gap-3 pt-4">
             <Button onClick={handleNextStep} className="flex-1">
               {currentStepIndex === recipe.steps.length - 1
-                ? 'Ολοκλήρωση'
-                : 'Επόμενο Βήμα'}
+                ? "Ολοκλήρωση"
+                : "Επόμενο Βήμα"}
             </Button>
             <Button
               variant="outline"
@@ -153,4 +175,3 @@ export default function RecipeExecute() {
     </div>
   );
 }
-

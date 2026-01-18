@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Service
 @Transactional // Εξασφαλίζει ότι οι αλλαγές στη βάση γίνονται ατομικά (ACID)
-public class RecipeServiceImpl implements RecipeService{
+public class RecipeServiceImpl implements RecipeService {
 
     private final RecipeRepository recipeRepository;
 
@@ -35,13 +35,31 @@ public class RecipeServiceImpl implements RecipeService{
 
     @Override
     public Recipe saveRecipe(Recipe recipe) {
-        // Αν είναι update, πρέπει να ξανα-συνδέσουμε τα παιδιά με τον γονέα
-        // για σιγουριά, αν και οι helper methods το κάνουν ήδη.
-        if (recipe.getSteps() != null) {
-            recipe.getSteps().forEach(step -> step.setRecipe(recipe));
-        }
+        // 1. Link main ingredients to recipe
         if (recipe.getIngredients() != null) {
             recipe.getIngredients().forEach(ing -> ing.setRecipe(recipe));
+        }
+
+        // 2. Link steps to recipe AND unify ingredients
+        if (recipe.getSteps() != null) {
+            recipe.getSteps().forEach(step -> {
+                step.setRecipe(recipe);
+
+                if (step.getIngredients() != null && recipe.getIngredients() != null) {
+                    java.util.List<Ingredient> unifiedList = new java.util.ArrayList<>();
+
+                    for (Ingredient stepIng : step.getIngredients()) {
+                        // Find the corresponding object in the main list
+                        recipe.getIngredients().stream()
+                                .filter(mainIng -> mainIng.getName().equals(stepIng.getName()) &&
+                                        mainIng.getQuantity().equals(stepIng.getQuantity()) &&
+                                        mainIng.getUnit().equals(stepIng.getUnit()))
+                                .findFirst()
+                                .ifPresent(unifiedList::add);
+                    }
+                    step.setIngredients(unifiedList);
+                }
+            });
         }
         return recipeRepository.save(recipe);
     }
@@ -100,9 +118,12 @@ public class RecipeServiceImpl implements RecipeService{
     // --- BUSINESS LOGIC: EXECUTION & PROGRESS BAR ---
 
     /**
-     * Υπολογίζει την πρόοδο (0.0 έως 100.0) με βάση το χρόνο των ολοκληρωμένων βημάτων.
-     * @param recipe Η συνταγή
-     * @param lastCompletedStepOrder Το νούμερο του βήματος που μόλις τελείωσε (π.χ. 2)
+     * Υπολογίζει την πρόοδο (0.0 έως 100.0) με βάση το χρόνο των ολοκληρωμένων
+     * βημάτων.
+     *
+     * @param recipe                 Η συνταγή
+     * @param lastCompletedStepOrder Το νούμερο του βήματος που μόλις τελείωσε (π.χ.
+     *                               2)
      */
     @Override
     public double calculateProgress(Recipe recipe, int lastCompletedStepOrder) {
@@ -111,7 +132,8 @@ public class RecipeServiceImpl implements RecipeService{
         }
 
         double totalDuration = recipe.getTotalTimeMinutes();
-        if (totalDuration == 0) return 0.0; // Αποφυγή διαίρεσης με το μηδέν
+        if (totalDuration == 0)
+            return 0.0; // Αποφυγή διαίρεσης με το μηδέν
 
         double completedTime = 0.0;
 

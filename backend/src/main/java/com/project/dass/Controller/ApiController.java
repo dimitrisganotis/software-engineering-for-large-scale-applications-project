@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000") // Επιτρέπει στο React να μιλάει με το Spring
+@CrossOrigin(origins = "*") // Επιτρέπει σε όλα τα frontends να μιλούν με το Spring
 public class ApiController {
 
     @Autowired
@@ -40,7 +40,7 @@ public class ApiController {
     private PhotoService stepPhotoService;
 
     @GetMapping(value = "/", produces = "application/json;charset=UTF-8")
-    public String helloWorld(){
+    public String helloWorld() {
         return "Hello World";
     }
 
@@ -59,7 +59,7 @@ public class ApiController {
     }
 
     // GET recipes by category
-        @GetMapping(value = "/recipes/category/{category}", produces = "application/json;charset=UTF-8")
+    @GetMapping(value = "/recipes/category/{category}", produces = "application/json;charset=UTF-8")
     public ResponseEntity<List<Recipe>> getRecipesByCategory(@PathVariable RecipeCategory category) {
         return ResponseEntity.ok(recipeService.getRecipesByCategory(category));
     }
@@ -99,7 +99,7 @@ public class ApiController {
     }
 
     // --- NEW ENDPOINT: PROGRESS CALCULATION ---
-    // Αυτό λείπει και είναι απαραίτητο για το παραδοτέο Π2.2
+    // --- NEW ENDPOINT: PROGRESS CALCULATION ---
     @GetMapping(value = "/recipes/{id}/progress", produces = "application/json")
     public ResponseEntity<Double> getExecutionProgress(
             @PathVariable Long id,
@@ -154,7 +154,7 @@ public class ApiController {
 
         // Determine content type based on file extension
         MediaType mediaType = photoService.getContentType(filename);
-        
+
         return ResponseEntity.ok()
                 .contentType(mediaType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
@@ -250,7 +250,7 @@ public class ApiController {
 
         // Determine content type based on file extension
         MediaType mediaType = stepPhotoService.getContentType(filename);
-        
+
         return ResponseEntity.ok()
                 .contentType(mediaType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")

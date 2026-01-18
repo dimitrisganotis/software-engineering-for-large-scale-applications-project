@@ -1,13 +1,13 @@
-import { Link } from 'react-router';
-import { useRecipes } from '~/context/RecipesContext';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
-import type { Difficulty } from '~/data/mockRecipes';
+import { Link } from "react-router";
+import { useRecipes } from "~/context/RecipesContext";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import type { Difficulty } from "~/lib/api";
 
 const difficultyLabels: Record<Difficulty, string> = {
-  easy: 'Εύκολη',
-  medium: 'Μέτρια',
-  hard: 'Δύσκολη'
+  EASY: "Εύκολη",
+  MEDIUM: "Μέτρια",
+  HARD: "Δύσκολη",
 };
 
 export default function RecipesList() {
@@ -49,11 +49,17 @@ export default function RecipesList() {
           {recipes.map((recipe) => (
             <Card key={recipe.id} className="flex flex-col">
               <CardHeader>
-                <CardTitle className="text-xl">{recipe.name}</CardTitle>
+                <CardTitle className="text-xl">{recipe.title}</CardTitle>
                 <div className="text-sm text-neutral-500 space-y-1">
                   <p>Κατηγορία: {recipe.category}</p>
                   <p>Δυσκολία: {difficultyLabels[recipe.difficulty]}</p>
                   <p>Χρόνος: {recipe.totalTimeMinutes} λεπτά</p>
+                  {recipe.dateCreated && (
+                    <p>
+                      Δημ:{" "}
+                      {new Date(recipe.dateCreated).toLocaleDateString("el-GR")}
+                    </p>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col justify-end">
@@ -67,7 +73,9 @@ export default function RecipesList() {
                   <Button
                     variant="destructive"
                     size="icon"
-                    onClick={() => handleDelete(recipe.id, recipe.name)}
+                    onClick={() =>
+                      handleDelete(String(recipe.id), recipe.title)
+                    }
                   >
                     ✕
                   </Button>
@@ -80,4 +88,3 @@ export default function RecipesList() {
     </div>
   );
 }
-

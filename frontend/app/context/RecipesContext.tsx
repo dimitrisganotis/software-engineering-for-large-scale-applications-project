@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import type { Recipe } from '~/data/mockRecipes';
-import { getAllRecipes, createRecipe as createRecipeAPI, updateRecipe as updateRecipeAPI, deleteRecipe as deleteRecipeAPI } from '~/data/mockRecipes';
+import { api, type Recipe } from '~/lib/api';
 
 interface RecipesContextType {
   recipes: Recipe[];
   loading: boolean;
   getRecipe: (id: string) => Recipe | undefined;
   createRecipe: (recipe: Omit<Recipe, 'id'>) => Promise<void>;
-  updateRecipe: (id: string, recipe: Omit<Recipe, 'id'>) => Promise<void>;
+  updateRecipe: (id: string, recipe: Partial<Recipe>) => Promise<void>;
   deleteRecipe: (id: string) => Promise<void>;
   refreshRecipes: () => Promise<void>;
 }
@@ -21,8 +20,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const refreshRecipes = async () => {
     setLoading(true);
     try {
-      // Στο μέλλον: API call
-      const data = await getAllRecipes();
+      const data = await api.getRecipes();
       setRecipes(data);
     } catch (error) {
       console.error('Failed to fetch recipes:', error);
@@ -36,24 +34,22 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const getRecipe = (id: string) => {
-    return recipes.find(r => r.id === id);
+    // We convert ID to string for comparison, as URL params are strings
+    return recipes.find(r => String(r.id) === id);
   };
 
   const createRecipe = async (recipe: Omit<Recipe, 'id'>) => {
-    // Στο μέλλον: API call
-    await createRecipeAPI(recipe);
+    await api.createRecipe(recipe);
     await refreshRecipes();
   };
 
-  const updateRecipe = async (id: string, recipe: Omit<Recipe, 'id'>) => {
-    // Στο μέλλον: API call
-    await updateRecipeAPI(id, recipe);
+  const updateRecipe = async (id: string, recipe: Partial<Recipe>) => {
+    await api.updateRecipe(id, recipe);
     await refreshRecipes();
   };
 
   const deleteRecipe = async (id: string) => {
-    // Στο μέλλον: API call
-    await deleteRecipeAPI(id);
+    await api.deleteRecipe(id);
     await refreshRecipes();
   };
 
@@ -81,4 +77,5 @@ export function useRecipes() {
   }
   return context;
 }
+
 

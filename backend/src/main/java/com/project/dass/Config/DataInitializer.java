@@ -32,7 +32,8 @@ public class DataInitializer implements CommandLineRunner {
         carbonara.setPrepTimeMinutes(15);
         carbonara.setTotalTimeMinutes(30);
         carbonara.setDateCreated(new Date());
-        carbonara.setImageUrls(Arrays.asList("https://example.com/carbonara1.jpg", "https://example.com/carbonara2.jpg"));
+        // carbonara.setImageUrls(Arrays.asList("https://example.com/carbonara1.jpg",
+        // "https://example.com/carbonara2.jpg"));
 
         Ingredient ing1 = new Ingredient();
         ing1.setName("Spaghetti");
@@ -75,7 +76,8 @@ public class DataInitializer implements CommandLineRunner {
         RecipeStep step3 = new RecipeStep();
         step3.setStepOrder(3);
         step3.setTitle("Mix everything");
-        step3.setDescription("Drain pasta, reserving some pasta water. Mix pasta with pancetta, eggs, and cheese. Add pasta water if needed.");
+        step3.setDescription(
+                "Drain pasta, reserving some pasta water. Mix pasta with pancetta, eggs, and cheese. Add pasta water if needed.");
         step3.setDurationMinutes(5);
         carbonara.addStep(step3);
 
@@ -89,7 +91,7 @@ public class DataInitializer implements CommandLineRunner {
         greekSalad.setPrepTimeMinutes(10);
         greekSalad.setTotalTimeMinutes(10);
         greekSalad.setDateCreated(new Date());
-        greekSalad.setImageUrls(Arrays.asList("https://example.com/greeksalad.jpg"));
+        // greekSalad.setImageUrls(Arrays.asList("https://example.com/greeksalad.jpg"));
 
         Ingredient sal1 = new Ingredient();
         sal1.setName("Tomatoes");
@@ -237,7 +239,8 @@ public class DataInitializer implements CommandLineRunner {
         RecipeStep chStep1 = new RecipeStep();
         chStep1.setStepOrder(1);
         chStep1.setTitle("Marinate");
-        chStep1.setDescription("Mix olive oil, lemon juice, and minced garlic. Marinate chicken for at least 30 minutes.");
+        chStep1.setDescription(
+                "Mix olive oil, lemon juice, and minced garlic. Marinate chicken for at least 30 minutes.");
         chStep1.setDurationMinutes(5);
         grilledChicken.addStep(chStep1);
 
@@ -294,7 +297,8 @@ public class DataInitializer implements CommandLineRunner {
         RecipeStep vsStep2 = new RecipeStep();
         vsStep2.setStepOrder(2);
         vsStep2.setTitle("Cook");
-        vsStep2.setDescription("Sauté onions, add vegetables and broth. Simmer for 30 minutes until vegetables are tender.");
+        vsStep2.setDescription(
+                "Sauté onions, add vegetables and broth. Simmer for 30 minutes until vegetables are tender.");
         vsStep2.setDurationMinutes(30);
         vegSoup.addStep(vsStep2);
 
@@ -303,4 +307,3 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println("Dummy data initialized successfully!");
     }
 }
-
