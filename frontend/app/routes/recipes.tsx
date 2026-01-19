@@ -2,6 +2,17 @@ import { Link } from "react-router";
 import { useRecipes } from "~/context/RecipesContext";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog"; // <--- 1. ΝΕΑ IMPORTS
 import type { Difficulty } from "~/lib/api";
 
 const difficultyLabels: Record<Difficulty, string> = {
@@ -12,12 +23,6 @@ const difficultyLabels: Record<Difficulty, string> = {
 
 export default function RecipesList() {
   const { recipes, loading, deleteRecipe } = useRecipes();
-
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Θέλετε σίγουρα να διαγράψετε τη συνταγή "${name}";`)) {
-      await deleteRecipe(id);
-    }
-  };
 
   if (loading) {
     return (
@@ -70,15 +75,35 @@ export default function RecipesList() {
                   <Button asChild variant="outline" className="flex-1">
                     <Link to={`/recipes/${recipe.id}/edit`}>Επεξεργασία</Link>
                   </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() =>
-                      handleDelete(String(recipe.id), recipe.title)
-                    }
-                  >
-                    ✕
-                  </Button>
+                  {/* --- 2. ΕΔΩ ΕΙΝΑΙ Η ΑΛΛΑΓΗ ΓΙΑ ΤΗ ΔΙΑΓΡΑΦΗ --- */}
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="icon">
+                                          ✕
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Είστε σίγουροι;</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Η συνταγή
+                                            <strong> "{recipe.title}" </strong>
+                                            θα διαγραφεί μόνιμα.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Ακύρωση</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            className="bg-red-600 hover:bg-red-700"
+                                            onClick={() => deleteRecipe(String(recipe.id))}
+                                          >
+                                            Διαγραφή
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                    {/* ------------------------------------------- */}
+
                 </div>
               </CardContent>
             </Card>

@@ -24,7 +24,7 @@ public class Recipe {
     private DifficultyLevel difficulty;
     @Enumerated(EnumType.STRING)
     private RecipeCategory category;
-    private Integer prepTimeMinutes;
+    //private Integer prepTimeMinutes;
     private Integer totalTimeMinutes; // [cite: 10]
     @Column(name = "date_created", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Date dateCreated = new Date(); // Αυτόµατη ηµεροµηνία

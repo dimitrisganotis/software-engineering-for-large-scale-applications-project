@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router";
 import { useRecipes } from "~/context/RecipesContext";
 import {
   api,
-  type Recipe,
   type RecipeStep,
   type Ingredient,
   type Difficulty,
@@ -25,35 +24,46 @@ import { Checkbox } from "~/components/ui/checkbox";
 export default function RecipeForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { recipes, getRecipe, createRecipe, updateRecipe, refreshRecipes } =
-    useRecipes();
-  // We compare with string because url params are strings
+  const { recipes, updateRecipe, refreshRecipes } = useRecipes();
   const isEdit = !!id;
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
-  const [totalTimeMinutes, setTotalTimeMinutes] = useState("");
+
+  // --- ΧΡΟΝΟΣ (Μόνο συνολικός πλέον) ---
+  const [totalTimeMinutes, setTotalTimeMinutes] = useState(0);
 
   // Structured Ingredients
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-
   const [steps, setSteps] = useState<RecipeStep[]>([]);
 
   // Photo Files
   const [recipePhoto, setRecipePhoto] = useState<File | null>(null);
   const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
-  const [stepPhotos, setStepPhotos] = useState<Record<number, File>>({}); // index -> file
+  const [stepPhotos, setStepPhotos] = useState<Record<number, File>>({});
 
+  // --- 1. ΑΥΤΟΜΑΤΟΣ ΥΠΟΛΟΓΙΣΜΟΣ ΧΡΟΝΟΥ ---
+  // Υπολογίζει το σύνολο ΜΟΝΟ από τα βήματα
+  useEffect(() => {
+    const stepsTotal = steps.reduce((sum, step) => {
+      return sum + (parseInt(step.durationMinutes.toString()) || 0);
+    }, 0);
+
+    setTotalTimeMinutes(stepsTotal);
+  }, [steps]); // Τρέχει μόνο όταν αλλάζουν τα βήματα
+
+  // --- 2. ΦΟΡΤΩΣΗ ΔΕΔΟΜΕΝΩΝ (EDIT MODE) ---
   useEffect(() => {
     if (isEdit && id) {
-      // Find directly from recipes array to ensure reactivity when data loads
       const recipe = recipes.find((r) => r.id.toString() === id.toString());
       if (recipe) {
         setName(recipe.title);
         setCategory(recipe.category);
         setDifficulty(recipe.difficulty);
-        setTotalTimeMinutes(recipe.totalTimeMinutes.toString());
+
+        // Δεν φορτώνουμε prepTime πλέον
+
         setIngredients(recipe.ingredients);
         setSteps(recipe.steps);
         setExistingPhotos(recipe.imageUrls || []);
@@ -87,7 +97,7 @@ export default function RecipeForm() {
       title: "",
       description: "",
       durationMinutes: 0,
-      ingredients: [], // Init empty linked ingredients
+      ingredients: [],
     };
     setSteps([...steps, newStep]);
   };
@@ -113,7 +123,7 @@ export default function RecipeForm() {
   const toggleStepIngredient = (stepIndex: number, ingredient: Ingredient) => {
     const step = steps[stepIndex];
     const currentLinked = step.ingredients || [];
-    const exists = currentLinked.some((i) => i.name === ingredient.name); // Match by name or some ID if available
+    const exists = currentLinked.some((i) => i.name === ingredient.name);
 
     let newLinked;
     if (exists) {
@@ -132,27 +142,22 @@ export default function RecipeForm() {
       title: name,
       category,
       difficulty,
-      totalTimeMinutes: parseInt(totalTimeMinutes, 10),
+      prepTimeMinutes: 0, // Στέλνουμε 0 για να μην χαλάσει ο υπολογισμός στο Backend
+      totalTimeMinutes: totalTimeMinutes,
       ingredients,
       steps,
     };
-    // Initialize prepTime same as total for simplicity or add field
-    recipeData.prepTimeMinutes = recipeData.totalTimeMinutes;
 
     try {
       if (isEdit && id) {
         await updateRecipe(id, recipeData);
-        // Handle photos for edit if needed (skipped for MVP simplicity or add logic)
       } else {
-        // 1. Create Recipe
         const savedRecipe = await api.createRecipe(recipeData);
 
-        // 2. Upload Recipe Photo
         if (savedRecipe.id && recipePhoto) {
           await api.uploadPhoto(savedRecipe.id, recipePhoto);
         }
 
-        // 3. Upload Step Photos
         if (savedRecipe.id && savedRecipe.steps) {
           for (let i = 0; i < savedRecipe.steps.length; i++) {
             const file = stepPhotos[i];
@@ -210,6 +215,7 @@ export default function RecipeForm() {
                     <SelectItem value="VEGETARIAN">Χορτοφαγικό</SelectItem>
                     <SelectItem value="DESSERT">Γλυκό</SelectItem>
                     <SelectItem value="SOUP">Σούπα</SelectItem>
+                    <SelectItem value="SALAD">Σαλάτα</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -231,14 +237,19 @@ export default function RecipeForm() {
                 </Select>
               </div>
 
+              {/* --- ΣΥΝΟΛΙΚΟΣ ΧΡΟΝΟΣ (Read Only - Χωρίς Prep) --- */}
               <div className="space-y-2">
-                <Label htmlFor="totalTime">Χρόνος (λεπτά)</Label>
+                <Label htmlFor="totalTime">Συνολικός Χρόνος (λεπτά)</Label>
                 <Input
+                  id="totalTime"
                   type="number"
                   value={totalTimeMinutes}
-                  onChange={(e) => setTotalTimeMinutes(e.target.value)}
-                  required
+                  readOnly
+                  className="bg-neutral-100 cursor-not-allowed"
                 />
+                <p className="text-xs text-neutral-500">
+                  Υπολογίζεται αυτόματα από τα βήματα
+                </p>
               </div>
 
               <div className="space-y-2 col-span-2">

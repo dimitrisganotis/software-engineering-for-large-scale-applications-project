@@ -29,7 +29,6 @@ public class DataInitializer implements CommandLineRunner {
         carbonara.setTitle("Spaghetti Carbonara");
         carbonara.setDifficulty(DifficultyLevel.MEDIUM);
         carbonara.setCategory(RecipeCategory.PASTA);
-        carbonara.setPrepTimeMinutes(15);
         carbonara.setTotalTimeMinutes(30);
         carbonara.setDateCreated(new Date());
         // carbonara.setImageUrls(Arrays.asList("https://example.com/carbonara1.jpg",
@@ -88,7 +87,6 @@ public class DataInitializer implements CommandLineRunner {
         greekSalad.setTitle("Greek Salad");
         greekSalad.setDifficulty(DifficultyLevel.EASY);
         greekSalad.setCategory(RecipeCategory.SALAD);
-        greekSalad.setPrepTimeMinutes(10);
         greekSalad.setTotalTimeMinutes(10);
         greekSalad.setDateCreated(new Date());
         // greekSalad.setImageUrls(Arrays.asList("https://example.com/greeksalad.jpg"));
@@ -144,7 +142,6 @@ public class DataInitializer implements CommandLineRunner {
         chocolateCake.setTitle("Chocolate Cake");
         chocolateCake.setDifficulty(DifficultyLevel.MEDIUM);
         chocolateCake.setCategory(RecipeCategory.DESSERT);
-        chocolateCake.setPrepTimeMinutes(20);
         chocolateCake.setTotalTimeMinutes(60);
         chocolateCake.setDateCreated(new Date());
         chocolateCake.setImageUrls(Arrays.asList("https://example.com/chocolatecake.jpg"));
@@ -207,7 +204,6 @@ public class DataInitializer implements CommandLineRunner {
         grilledChicken.setTitle("Grilled Chicken Breast");
         grilledChicken.setDifficulty(DifficultyLevel.EASY);
         grilledChicken.setCategory(RecipeCategory.MEAT);
-        grilledChicken.setPrepTimeMinutes(10);
         grilledChicken.setTotalTimeMinutes(25);
         grilledChicken.setDateCreated(new Date());
         grilledChicken.setImageUrls(Arrays.asList("https://example.com/grilledchicken.jpg"));
@@ -258,7 +254,6 @@ public class DataInitializer implements CommandLineRunner {
         vegSoup.setTitle("Vegetable Soup");
         vegSoup.setDifficulty(DifficultyLevel.EASY);
         vegSoup.setCategory(RecipeCategory.SOUP);
-        vegSoup.setPrepTimeMinutes(15);
         vegSoup.setTotalTimeMinutes(45);
         vegSoup.setDateCreated(new Date());
         vegSoup.setImageUrls(Arrays.asList("https://example.com/vegsoup.jpg"));
