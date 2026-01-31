@@ -25,17 +25,15 @@ public class Recipe {
     @Enumerated(EnumType.STRING)
     private RecipeCategory category;
     //private Integer prepTimeMinutes;
-    private Integer totalTimeMinutes; // [cite: 10]
+    private Integer totalTimeMinutes;
     @Column(name = "date_created", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Date dateCreated = new Date(); // Αυτόµατη ηµεροµηνία
+    private Date dateCreated = new Date();
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<Ingredient> ingredients = new ArrayList<>();
-    // Βήµατα: Μια συνταγή έχει πολλά βήµατα
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<RecipeStep> steps = new ArrayList<>();
-    // Εικόνες Συνταγής (Λίστα από URLs)
     @ElementCollection
     @CollectionTable(name = "recipe_images", joinColumns =
     @JoinColumn(name = "recipe_id"))

@@ -21,24 +21,21 @@ public class RecipeServiceImpl implements RecipeService {
         this.recipeRepository = recipeRepository;
     }
 
-    // -------------------------------------------------------------------------
-    // 1. ΝΕΑ ΒΟΗΘΗΤΙΚΗ ΜΕΘΟΔΟΣ (Υπολογίζει το άθροισμα)
-    // -------------------------------------------------------------------------
+   //calculate total time based on steps only
     private void calculateAndSetTotalTime(Recipe recipe) {
         int stepsDuration = 0;
 
-        // Αθροίζουμε τη διάρκεια όλων των βημάτων
+        // sum durations of all steps
         if (recipe.getSteps() != null) {
             stepsDuration = recipe.getSteps().stream()
                     .mapToInt(step -> step.getDurationMinutes() != null ? step.getDurationMinutes() : 0)
                     .sum();
         }
-
-        // Ο συνολικός χρόνος είναι πλέον ΜΟΝΟ η διάρκεια των βημάτων
+        // Total time is the sum of step durations now
         recipe.setTotalTimeMinutes(stepsDuration);
     }
 
-    // --- BASIC CRUD OPERATIONS ---
+    // --- BASIC  OPERATIONS ---
 
     @Override
     public List<Recipe> getAllRecipes() {
@@ -52,15 +49,15 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public Recipe saveRecipe(Recipe recipe) {
-        // 2. ΚΑΛΟΥΜΕ ΤΟΝ ΥΠΟΛΟΓΙΣΜΟ ΠΡΙΝ ΤΗΝ ΑΠΟΘΗΚΕΥΣΗ <--- NEW
+        // Calculate and set total time based on steps
         calculateAndSetTotalTime(recipe);
 
-        // 1. Link main ingredients to recipe
+        // Link main ingredients to recipe
         if (recipe.getIngredients() != null) {
             recipe.getIngredients().forEach(ing -> ing.setRecipe(recipe));
         }
 
-        // 2. Link steps to recipe AND unify ingredients
+        // Link steps to recipe and unify ingredients
         if (recipe.getSteps() != null) {
             recipe.getSteps().forEach(step -> {
                 step.setRecipe(recipe);
@@ -87,14 +84,14 @@ public class RecipeServiceImpl implements RecipeService {
     public Optional<Recipe> updateRecipe(Long id, Recipe recipeDetails) {
         return recipeRepository.findById(id).map(existingRecipe -> {
 
-            // 1. Ενημέρωση απλών πεδίων (ΑΦΑΙΡΕΘΗΚΕ ΤΟ prepTimeMinutes)
+            // Update basic fields
             existingRecipe.setTitle(recipeDetails.getTitle());
             existingRecipe.setDifficulty(recipeDetails.getDifficulty());
             existingRecipe.setCategory(recipeDetails.getCategory());
 
             existingRecipe.setImageUrls(recipeDetails.getImageUrls());
 
-            // 2. Ενημέρωση Ingredients
+            // Update ingredients
             if (recipeDetails.getIngredients() != null) {
                 existingRecipe.getIngredients().clear();
                 recipeDetails.getIngredients().forEach(ingredient -> {
@@ -103,7 +100,7 @@ public class RecipeServiceImpl implements RecipeService {
                 });
             }
 
-            // 3. Ενημέρωση Steps
+            // Update steps
             if (recipeDetails.getSteps() != null) {
                 existingRecipe.getSteps().clear();
                 recipeDetails.getSteps().forEach(step -> {
@@ -112,10 +109,10 @@ public class RecipeServiceImpl implements RecipeService {
                 });
             }
 
-            // 4. ΥΠΟΛΟΓΙΣΜΟΣ ΞΑΝΑ (επειδή άλλαξαν τα βήματα)
+            // Calculate and set total time
             calculateAndSetTotalTime(existingRecipe);
 
-            // 5. Αποθήκευση
+            // Save updated recipe
             return recipeRepository.save(existingRecipe);
         });
     }
@@ -135,7 +132,7 @@ public class RecipeServiceImpl implements RecipeService {
         return recipeRepository.findByCategory(category);
     }
 
-    // --- BUSINESS LOGIC: EXECUTION & PROGRESS BAR ---
+    // --- EXECUTION & PROGRESS BAR ---
 
     @Override
     public double calculateProgress(Recipe recipe, int lastCompletedStepOrder) {

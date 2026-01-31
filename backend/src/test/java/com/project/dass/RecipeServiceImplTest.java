@@ -17,44 +17,38 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class) // Ενεργοποιεί το Mockito
+@ExtendWith(MockitoExtension.class)
 class RecipeServiceImplTest {
 
     @Mock
-    private RecipeRepository recipeRepository; // Ψεύτικο Repository
+    private RecipeRepository recipeRepository;
 
     @InjectMocks
-    private RecipeServiceImpl recipeService; // Το Service που τεστάρουμε
+    private RecipeServiceImpl recipeService;
 
-    // --- ΤΕΣΤ 1: Υπολογισμός Συνολικού Χρόνου κατά το Save ---
+
     @Test
     void saveRecipe_ShouldCalculateTotalTimeFromSteps() {
-        // 1. Προετοιμασία δεδομένων (Arrange)
         Recipe recipe = new Recipe();
         recipe.setTitle("Test Pasta");
 
         RecipeStep step1 = new RecipeStep();
-        step1.setDurationMinutes(10); // Βράσιμο
+        step1.setDurationMinutes(10);
         RecipeStep step2 = new RecipeStep();
-        step2.setDurationMinutes(20); // Σάλτσα
+        step2.setDurationMinutes(20);
 
         recipe.setSteps(Arrays.asList(step1, step2));
 
-        // Όταν καλέσουμε το save, να επιστρέψει το ίδιο recipe
         when(recipeRepository.save(any(Recipe.class))).thenReturn(recipe);
 
-        // 2. Εκτέλεση (Act)
         Recipe savedRecipe = recipeService.saveRecipe(recipe);
 
-        // 3. Έλεγχος (Assert)
-        // Περιμένουμε 10 + 20 = 30 λεπτά
-        assertEquals(30, savedRecipe.getTotalTimeMinutes(), "Ο συνολικός χρόνος πρέπει να είναι το άθροισμα των βημάτων");
+        assertEquals(30, savedRecipe.getTotalTimeMinutes(), "Total time should be the sum of step durations");
 
-        // Επιβεβαίωση ότι καλέστηκε η save του repository
         verify(recipeRepository, times(1)).save(recipe);
     }
 
-    // --- ΤΕΣΤ 2: Υπολογισμός Προόδου (Business Logic) ---
+    // Test Calculate Progress
     @Test
     void calculateProgress_ShouldReturnCorrectPercentage() {
         // Arrange
@@ -66,44 +60,42 @@ class RecipeServiceImplTest {
 
         RecipeStep step2 = new RecipeStep();
         step2.setStepOrder(2);
-        step2.setDurationMinutes(30); // Μεγάλο βήμα
+        step2.setDurationMinutes(30);
 
         RecipeStep step3 = new RecipeStep();
         step3.setStepOrder(3);
         step3.setDurationMinutes(10);
 
         recipe.setSteps(Arrays.asList(step1, step2, step3));
-        // Total time θα υπολογιστεί 50 λεπτά (10+30+10)
-        // Αν το saveRecipe δουλεύει σωστά, θα το έβαζε. Εδώ το βάζουμε χειροκίνητα για το τεστ της μεθόδου calculateProgress
+        // Total time (10+30+10)
         recipe.setTotalTimeMinutes(50);
 
         // Act
-        // Έχουμε ολοκληρώσει μέχρι και το βήμα 2.
-        // Ολοκληρωμένος χρόνος: 10 + 30 = 40.
-        // Πρόοδος: 40 / 50 = 0.8 -> 80%
+        // Total time: 10 + 30 = 40.
+        // Progress: 40 / 50 = 0.8 -> 80%
         double progress = recipeService.calculateProgress(recipe, 2);
 
         // Assert
         assertEquals(80.0, progress, 0.01);
     }
 
-    // --- ΤΕΣΤ 3: Update Recipe (Έλεγχος ότι ξανα-υπολογίζει το χρόνο) ---
+    // Update Recipe (also check time recalculation)
     @Test
     void updateRecipe_ShouldRecalculateTime() {
         // Arrange
         Long recipeId = 1L;
 
-        // Η παλιά συνταγή στη βάση
+        // Old recipe data
         Recipe existingRecipe = new Recipe();
         existingRecipe.setId(recipeId);
         existingRecipe.setTitle("Old Title");
-        existingRecipe.setTotalTimeMinutes(100); // Παλιός χρόνος
+        existingRecipe.setTotalTimeMinutes(100);
 
-        // Τα νέα δεδομένα από το Frontend
+        // New data for update
         Recipe newDetails = new Recipe();
         newDetails.setTitle("New Title");
         RecipeStep newStep = new RecipeStep();
-        newStep.setDurationMinutes(15); // Νέος χρόνος μόνο 15 λεπτά
+        newStep.setDurationMinutes(15);
         newDetails.setSteps(Arrays.asList(newStep));
 
         when(recipeRepository.findById(recipeId)).thenReturn(Optional.of(existingRecipe));
@@ -115,16 +107,15 @@ class RecipeServiceImplTest {
         // Assert
         assertTrue(result.isPresent());
         assertEquals("New Title", result.get().getTitle());
-        // Ο χρόνος πρέπει να έγινε 15 (από το νέο βήμα) και όχι να έμεινε 100
         assertEquals(15, result.get().getTotalTimeMinutes());
     }
 
-    // --- ΤΕΣΤ 4: Διαχείριση Σχέσεων (Ingredients Parent Link) ---
+    //  Ingredients Parent Link
     @Test
     void saveRecipe_ShouldSetParentOnIngredients() {
         // Arrange
         Recipe recipe = new Recipe();
-        Ingredient ing1 = new Ingredient(); // Δεν έχει parent ακόμα
+        Ingredient ing1 = new Ingredient(); // No parent yet
         recipe.setIngredients(List.of(ing1));
 
         when(recipeRepository.save(any(Recipe.class))).thenReturn(recipe);
@@ -133,15 +124,15 @@ class RecipeServiceImplTest {
         recipeService.saveRecipe(recipe);
 
         // Assert
-        // Ελέγχουμε αν το service έκανε ing1.setRecipe(recipe)
-        assertEquals(recipe, ing1.getRecipe(), "Το συστατικό πρέπει να δείχνει πίσω στη συνταγή");
+        //  ing1.setRecipe(recipe)
+        assertEquals(recipe, ing1.getRecipe(), "The step should show bck in the recipe");
     }
 
-    // --- ΤΕΣΤ 5: Διαίρεση με το μηδέν (Edge Case) ---
+    //  Edge Case - Devision by Zero in Progress Calculation
     @Test
     void calculateProgress_ZeroTotalTime_ShouldReturnZero() {
         Recipe recipe = new Recipe();
-        recipe.setTotalTimeMinutes(0); // Κενή συνταγή
+        recipe.setTotalTimeMinutes(0);
 
         double progress = recipeService.calculateProgress(recipe, 1);
 

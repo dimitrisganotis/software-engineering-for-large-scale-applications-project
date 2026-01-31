@@ -5,7 +5,7 @@ import com.project.dass.Model.RecipeCategory;
 import java.util.List;
 import java.util.Optional;
 
-// Εδώ ορίζουμε ΜΟΝΟ τα συμβόλαια (τις μεθόδους), όχι τον κώδικα.
+
 public interface RecipeService {
 
     List<Recipe> getAllRecipes();

@@ -12,9 +12,8 @@ public class Ingredient {
     private Long id;
     private String name;
     private Double quantity;
-    private String unit; // π.χ. "gr", "ml", "κουτάλι"
-    // Σύνδεση µε τη Συνταγή (Many Ingredients -> One Recipe)
-    // Χρησιµοποιούµε JsonIgnore για να µην έχουµε ατέρµονους βρόχους
+    private String unit;
+    // (Many Ingredients -> One Recipe)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id")
     @JsonIgnore

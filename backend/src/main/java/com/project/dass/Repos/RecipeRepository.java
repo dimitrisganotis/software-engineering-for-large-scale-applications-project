@@ -12,8 +12,8 @@ import java.util.List;
 @Repository
 public interface RecipeRepository extends JpaRepository<Recipe, Long>
 {
-    // Custom query: Βρες συνταγές ανά κατηγορία
+    // Find recipe by category
     List<Recipe> findByCategory(RecipeCategory category);
-    // Custom query: Αναζήτηση µε βάση τον τίτλο
+    // FInd recipe by title containing
     List<Recipe> findByTitleContainingIgnoreCase(String title);
 }

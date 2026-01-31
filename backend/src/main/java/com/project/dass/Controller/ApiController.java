@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*") // Επιτρέπει σε όλα τα frontends να μιλούν με το Spring
+@CrossOrigin(origins = "*")
 public class ApiController {
 
     @Autowired
@@ -80,9 +80,7 @@ public class ApiController {
     // PUT update recipe
     @PutMapping(value = "/recipes/{id}", produces = "application/json;charset=UTF-8")
     public ResponseEntity<Recipe> updateRecipe(@PathVariable Long id, @RequestBody Recipe recipeDetails) {
-        // Καλούμε το Service να κάνει όλη τη δουλειά
         Optional<Recipe> updatedRecipe = recipeService.updateRecipe(id, recipeDetails);
-        // Αν γυρίσει αποτέλεσμα -> 200 OK, αλλιώς -> 404 Not Found
         return updatedRecipe
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -98,8 +96,7 @@ public class ApiController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- NEW ENDPOINT: PROGRESS CALCULATION ---
-    // --- NEW ENDPOINT: PROGRESS CALCULATION ---
+    // GET execution progress
     @GetMapping(value = "/recipes/{id}/progress", produces = "application/json")
     public ResponseEntity<Double> getExecutionProgress(
             @PathVariable Long id,
@@ -114,9 +111,9 @@ public class ApiController {
         return ResponseEntity.ok(progress);
     }
 
-    // --- PHOTO CRUD ENDPOINTS ---
+    // --- PHOTO ENDPOINTS ---
 
-    // POST - Upload photo
+    // POST Upload photo
     @PostMapping(value = "/recipes/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> uploadPhoto(
             @PathVariable Long id,
@@ -140,7 +137,7 @@ public class ApiController {
                 .body("Photo uploaded successfully: " + imageUrl.get());
     }
 
-    // GET - Get photo file
+    // Get photo file
     @GetMapping(value = "/recipes/{id}/photo/{filename}")
     public ResponseEntity<Resource> getPhoto(
             @PathVariable Long id,
@@ -161,7 +158,7 @@ public class ApiController {
                 .body(resource.get());
     }
 
-    // GET - List all photos for a recipe
+    // List all photos for a recipe
     @GetMapping(value = "/recipes/{id}/photos", produces = "application/json")
     public ResponseEntity<List<String>> getPhotoFilenames(@PathVariable Long id) {
         Map<String, Long> ids = new HashMap<>();
@@ -170,7 +167,7 @@ public class ApiController {
         return ResponseEntity.ok(filenames);
     }
 
-    // DELETE - Delete a specific photo
+    // Delete a specific photo
     @DeleteMapping(value = "/recipes/{id}/photo/{filename}")
     public ResponseEntity<Void> deletePhoto(
             @PathVariable Long id,
@@ -185,7 +182,7 @@ public class ApiController {
         return ResponseEntity.noContent().build();
     }
 
-    // DELETE - Delete all photos for a recipe
+    // DELETE all photos for a recipe
     @DeleteMapping(value = "/recipes/{id}/photos")
     public ResponseEntity<Void> deleteAllPhotos(@PathVariable Long id) {
         Map<String, Long> ids = new HashMap<>();
@@ -199,7 +196,7 @@ public class ApiController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- STEP PHOTO CRUD ENDPOINTS ---
+    // --- STEP PHOTO ENDPOINTS ---
 
     // POST - Upload photo for a recipe step
     @PostMapping(value = "/recipes/{recipeId}/steps/{stepId}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -214,7 +211,7 @@ public class ApiController {
         Optional<String> imageUrl = stepPhotoService.uploadPhoto(ids, file);
 
         if (imageUrl.isEmpty()) {
-            // Check if recipe exists to provide better error message
+            // Check if recipe exists to provide error message
             Optional<Recipe> recipeOpt = recipeService.getRecipeById(recipeId);
             if (recipeOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -235,7 +232,7 @@ public class ApiController {
                 .body("Photo uploaded successfully: " + imageUrl.get());
     }
 
-    // GET - Get photo file for a recipe step
+    // GET photo file for a recipe step
     @GetMapping(value = "/recipes/{recipeId}/steps/{stepId}/photo/{filename}")
     public ResponseEntity<Resource> getStepPhoto(
             @PathVariable Long recipeId,
@@ -257,7 +254,7 @@ public class ApiController {
                 .body(resource.get());
     }
 
-    // DELETE - Delete a specific photo for a recipe step
+    // DELETE a specific photo for a recipe step
     @DeleteMapping(value = "/recipes/{recipeId}/steps/{stepId}/photo/{filename}")
     public ResponseEntity<Void> deleteStepPhoto(
             @PathVariable Long recipeId,
@@ -273,7 +270,7 @@ public class ApiController {
         return ResponseEntity.noContent().build();
     }
 
-    // DELETE - Delete all photos for a recipe step
+    // DELETE all photos for a recipe step
     @DeleteMapping(value = "/recipes/{recipeId}/steps/{stepId}/photos")
     public ResponseEntity<Void> deleteAllStepPhotos(
             @PathVariable Long recipeId,
