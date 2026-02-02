@@ -27,8 +27,9 @@ export default function RecipeForm() {
   const { recipes, updateRecipe, refreshRecipes } = useRecipes();
   const isEdit = !!id;
 
+  const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<string>("");
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
 
   // --- ΧΡΟΝΟΣ (Μόνο συνολικός πλέον) ---
@@ -56,8 +57,9 @@ export default function RecipeForm() {
   // --- 2. ΦΟΡΤΩΣΗ ΔΕΔΟΜΕΝΩΝ (EDIT MODE) ---
   useEffect(() => {
     if (isEdit && id) {
-      const recipe = recipes.find((r) => r.id.toString() === id.toString());
-      if (recipe) {
+      setLoading(true);
+      // Fetch directly from API to ensure we have the latest data
+      api.getRecipe(id).then((recipe) => {
         setName(recipe.title);
         setCategory(recipe.category);
         setDifficulty(recipe.difficulty);
@@ -67,9 +69,15 @@ export default function RecipeForm() {
         setIngredients(recipe.ingredients);
         setSteps(recipe.steps);
         setExistingPhotos(recipe.imageUrls || []);
-      }
+      }).catch((err) => {
+        console.error("Failed to load recipe:", err);
+        alert("Αποτυχία φόρτωσης συνταγής");
+        navigate("/");
+      }).finally(() => {
+        setLoading(false);
+      });
     }
-  }, [isEdit, id, recipes]);
+  }, [isEdit, id, navigate]);
 
   // --- Ingredient Handlers ---
   const handleAddIngredient = () => {
@@ -151,6 +159,23 @@ export default function RecipeForm() {
     try {
       if (isEdit && id) {
         await updateRecipe(id, recipeData);
+
+        // Upload φωτογραφίας συνταγής στο edit mode
+        if (recipePhoto) {
+          await api.uploadPhoto(parseInt(id), recipePhoto);
+        }
+
+        // Upload φωτογραφιών βημάτων στο edit mode
+        const currentRecipe = await api.getRecipe(id);
+        if (currentRecipe.steps) {
+          for (let i = 0; i < currentRecipe.steps.length; i++) {
+            const file = stepPhotos[i];
+            const stepId = currentRecipe.steps[i].id;
+            if (file && stepId) {
+              await api.uploadStepPhoto(currentRecipe.id!, stepId, file);
+            }
+          }
+        }
       } else {
         const savedRecipe = await api.createRecipe(recipeData);
 
@@ -183,14 +208,21 @@ export default function RecipeForm() {
           ← Επιστροφή στην Αρχική
         </Button>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">
-            {isEdit ? "Επεξεργασία Συνταγής" : "Νέα Συνταγή"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+      {loading ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-neutral-500">Φόρτωση...</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">
+              {isEdit ? "Επεξεργασία Συνταγής" : "Νέα Συνταγή"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* --- Basic Info --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -476,6 +508,7 @@ export default function RecipeForm() {
           </form>
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

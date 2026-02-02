@@ -18,7 +18,7 @@ export interface RecipeStep {
 }
 
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
-export type Category = "PASTA" | "MEAT" | "VEGETARIAN" | "DESSERT" | "SOUP";
+export type Category = "PASTA" | "MEAT" | "VEGETARIAN" | "DESSERT" | "SOUP" | "SALAD";
 
 export interface Recipe {
   id?: number;
